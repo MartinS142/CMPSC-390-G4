@@ -246,7 +246,7 @@ public class ToDoList extends Application {
               date = datePicker.getValue();
               taskList.add(task + " " + date);
               //creates a new Task Object
-              Task newTask = new Task(task, date);
+              //Task newTask = new Task();
               
               
             }

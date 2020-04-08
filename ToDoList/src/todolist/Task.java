@@ -18,10 +18,6 @@ public class Task {
         description = desc;
     }
     
-     public Task(String t, LocalDate due) {
-        title = t;
-        dueDate = due;
-    }
     
     //Set statements used to edit tasks after they have been made?
     public void setTitle(String t) { title = t; }
