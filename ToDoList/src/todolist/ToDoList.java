@@ -30,7 +30,7 @@ public class ToDoList extends Application {
   public static void main(String[] args) {
         launch(args);
         
-        WriteJson.jsonStorage(); //calls jsonStorage method, from WriteJson Class, to execute          
+        //WriteJson.jsonStorage(); //calls jsonStorage method, from WriteJson Class, to execute          
     }
 
 

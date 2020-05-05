@@ -9,9 +9,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
-import com.google.gson.*;
-import com.google.gson.stream.*;
-import com.google.gson.annotations.*;
 
 
 public class ReadJson {
@@ -20,7 +17,7 @@ public class ReadJson {
     public static void readJson(){
     JSONParser parser = new JSONParser();
     
-    try(FileReader file = new FileReader("V:\\Computer Programming\\CMPSC-390-G4-master\\ToDoList\\Storage.json")){
+    try(FileReader file = new FileReader("Storage.json")){
         Object obj = parser.parse(file); //parsing file
         JSONObject jsonObject = (JSONObject) obj; //taking jsonobject from file and bringing into program
         

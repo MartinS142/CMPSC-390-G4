@@ -1,9 +1,7 @@
 package todolist;
 
 import java.io.*;
-import com.google.gson.*;
-import com.google.gson.stream.*;
-import com.google.gson.annotations.*;
+
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
@@ -23,8 +21,10 @@ import todolist.TaskList;
 public class WriteJson {     
         public static String dateRead;
         public static void jsonTaskStorage(ArrayList<Task> t) throws IOException {
-            Gson input = new Gson();//create gson object     
-            String input2 = input.toJson(t); //convert to string to write to json
+            //Gson input = new Gson();//create gson object
+            String input = null;
+            //String input2 = input.toJson(t); //convert to string to write to json
+            String input2 = input;
             FileWriter file = new FileWriter("V:\\Computer Programming\\CMPSC-390-G4\\ToDoList\\Storage.json");
             try{
                 file.write(input2); //writing object to json file
