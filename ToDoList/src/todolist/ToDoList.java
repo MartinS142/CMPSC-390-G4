@@ -20,11 +20,11 @@ import javafx.stage.Stage;
 
 public class ToDoList extends Application {
     //Variables for task values
-     ListView<Task> tasks;
-     ObservableList<Task> allTaskList = FXCollections.<Task>observableArrayList(); //A list for all tasks. Tasks automatically added here
+     ListView<Task> tasks; //ListView for Tasks
+     TaskList allTaskList = new TaskList("All"); //A list for all tasks. Tasks automatically added here
      
      String listName;
-     ListView<TaskList> lists;
+     ListView<TaskList> lists; //ListView for lists
      ObservableList<TaskList> lystList = FXCollections.<TaskList>observableArrayList(); //List of user-created lists
      
   public static void main(String[] args) {
@@ -80,7 +80,7 @@ public class ToDoList extends Application {
         showAllTasksBtn.setLayoutX(10); showAllTasksBtn.setLayoutY(160);
         showAllTasksBtn.setMinWidth(150);
         showAllTasksBtn.setOnAction(event -> {
-            tasks.setItems(allTaskList);
+            tasks.setItems(allTaskList.getTasks());
             taskLabel.setText("Tasks");
         });
         
@@ -89,19 +89,18 @@ public class ToDoList extends Application {
         createNewTaskBtn.setText("New Task");
         createNewTaskBtn.setLayoutX(10); createNewTaskBtn.setLayoutY(420);
         createNewTaskBtn.setMinWidth(150);
-        createNewTaskBtn.setOnAction(new EventHandler<ActionEvent>() { //Button opens task creation screen
-            @Override
-             public void handle(ActionEvent event) { taskScreen(null); }
-        });
+        createNewTaskBtn.setOnAction((ActionEvent event) -> {
+            taskScreen(null);
+        } //Button opens task creation screen
+        );
         
         //Create-a-List button; opens list screen
         Button createNewListBtn = new Button();
         createNewListBtn.setText("New List");
         createNewListBtn.setLayoutX(10); createNewListBtn.setLayoutY(450);
         createNewListBtn.setMinWidth(150);
-        createNewListBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-             public void handle(ActionEvent event) { listScreen(null); }
+        createNewListBtn.setOnAction((ActionEvent event) -> {
+            listScreen(null);
         });
         
         //Edit button, edits tasks and lists
@@ -129,14 +128,30 @@ public class ToDoList extends Application {
             if(listToDelete!=null) { lystList.remove(listToDelete); } //Removes user-list from the list listview
             else if (taskToDelete!=null){ //Removes task from both all-task list, and from user-list, if it is a part of one
                 TaskList listToDeleteFrom = taskToDelete.getUserList();
-                allTaskList.remove(taskToDelete); 
+                allTaskList.getTasks().remove(taskToDelete); 
                 if (listToDeleteFrom!=null) { listToDeleteFrom.getTasks().remove(taskToDelete); }
             }
+        });
+        
+        //Sorts Tasks by earlier to later date
+        Button sortByDateBtn = new Button("Sort By Date");
+        sortByDateBtn.setLayoutX(245); sortByDateBtn.setLayoutY(130);
+        sortByDateBtn.setMinWidth(120);
+        sortByDateBtn.setOnAction(event -> {
+            TaskList.sortListByDate(tasks.getItems());
+        });
+        
+        //Sort Tasks by descending Importance
+        Button sortByImpBtn = new Button("Sort By Importance");
+        sortByImpBtn.setLayoutX(370); sortByImpBtn.setLayoutY(130);
+        sortByImpBtn.setMinWidth(120);
+        sortByImpBtn.setOnAction(event -> {
+            TaskList.sortListByImportance(tasks.getItems());
         });
         //END BUTTONS
 
         //ListView to display tasks
-        tasks = new ListView<>(allTaskList);
+        tasks = new ListView<>(allTaskList.getTasks());
         tasks.setLayoutX(170); tasks.setLayoutY(160);
         tasks.setMaxHeight((deleteBtn.getLayoutY()+25) - tasks.getLayoutY()); tasks.setMinWidth(320);
         tasks.setOnMouseClicked(event -> { //Clicking on tasks deselects any item from listView so delete and edit buttons work
@@ -153,11 +168,12 @@ public class ToDoList extends Application {
             taskLabel.setText(lists.getSelectionModel().getSelectedItem().getListName());
             tasks.getSelectionModel().clearSelection();
         });
-         
+        
+        
           
         //Add all things
         root.getChildren().addAll(imageView, title, listLabel, taskLabel, bottomBorder);
-        root.getChildren().addAll(createNewTaskBtn, createNewListBtn, editTaskBtn, deleteBtn, showAllTasksBtn, tasks, lists);
+        root.getChildren().addAll(createNewTaskBtn, createNewListBtn, editTaskBtn, deleteBtn, showAllTasksBtn, sortByDateBtn, sortByImpBtn, tasks, lists);
         
         primaryStage.show();
     }
@@ -272,35 +288,33 @@ public class ToDoList extends Application {
         submitTaskBtn.setLayoutX(xLayout); submitTaskBtn.setLayoutY(userLists.getLayoutY()+userLists.getPrefHeight()+20);
         submitTaskBtn.setFont(new Font("Arial", 20));
         
-        submitTaskBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-             public void handle(ActionEvent event) {
-                //Get info from boxes
-                String taskName = nameBox.getText();
-                LocalDate date = dateBox.getValue();
-                String description = descBox.getText();
-                Integer importance = priorityBox.getValue();
-                TaskList addToList = userLists.getValue();
-              
-               if (taskToEdit==null) { //If new task is being made
-                    Task newTask = new Task(taskName, date, description, importance, addToList); //Create task
-                    allTaskList.add(newTask); //Add task to all-tasks list always
-                    if (addToList!=null) { addToList.getTasks().add(newTask); } //Add it to user-list if user-list selected
-                }
-                else { //Else, existing task is being edited
-                    taskToEdit.editTask(taskName, date, description, importance, addToList); //Rewrites all attributes
-                    int allTaskIndex = allTaskList.indexOf(taskToEdit); //Task's place in allTaskList
-                    allTaskList.set(allTaskIndex, taskToEdit); //Immediately updates taskview for all-tasks list
-                    if (taskToEdit.getUserList()!=null) { //Immediately updates taskview for user-list, if task is part of one
-                        int userIndex = taskToEdit.getUserList().getTasks().indexOf(taskToEdit);
-                        taskToEdit.getUserList().getTasks().set(userIndex, taskToEdit);
-                    }
-                    lystList.remove(0); //Remove null option from lystList so it will not show in listview
-                }
-                newWindow.close(); //Close task window
-              
-             
+        submitTaskBtn.setOnAction((ActionEvent event) -> {
+            //Get info from boxes
+            String taskName = nameBox.getText();
+            LocalDate date = dateBox.getValue();
+            String description = descBox.getText();
+            Integer importance = priorityBox.getValue();
+            TaskList addToList = userLists.getValue();
+            
+            if (taskToEdit==null) { //If new task is being made
+                Task newTask = new Task(taskName, date, description, importance, addToList); //Create task
+                allTaskList.addToList(newTask); //Add task to all-tasks list always
+                TaskList.sortListByDate(allTaskList.getTasks());
+                if (addToList!=null) { addToList.addToList(newTask); TaskList.sortListByDate(addToList.getTasks()); } //Add it to user-list if user-list selected
             }
+            else { //Else, existing task is being edited
+                taskToEdit.editTask(taskName, date, description, importance, addToList); //Rewrites all attributes
+                int allTaskIndex = allTaskList.getTasks().indexOf(taskToEdit); //Task's place in allTaskList
+                allTaskList.getTasks().set(allTaskIndex, taskToEdit); //Immediately updates taskview for all-tasks list
+                TaskList.sortListByDate(allTaskList.getTasks());
+                if (taskToEdit.getUserList()!=null) { //Immediately updates taskview for user-list, if task is part of one
+                    int userIndex = taskToEdit.getUserList().getTasks().indexOf(taskToEdit);
+                    taskToEdit.getUserList().getTasks().set(userIndex, taskToEdit);
+                    TaskList.sortListByDate(taskToEdit.getUserList().getTasks());
+                }
+                lystList.remove(0); //Remove null option from lystList so it will not show in listview
+            }
+            newWindow.close(); //Close task window
         });
         
         //Add all things
@@ -356,21 +370,19 @@ public class ToDoList extends Application {
         submitListBtn.setText("Submit");
         submitListBtn.setLayoutX(50); submitListBtn.setLayoutY(nameBox.getLayoutY() + 40);
         
-        submitListBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-             public void handle(ActionEvent event) {
-              String listName = nameBox.getText();
-                if (listToEdit==null) { //If not editing list, make new one
-                    TaskList newList = new TaskList(listName);
-                    lystList.add(newList);
-                }
-                else { //Else, change existing list name. Replace old list with new one in listview
-                    listToEdit.setListName(listName);
-                    int lystIndex = lystList.indexOf(listToEdit);
-                    lystList.set(lystIndex, listToEdit);
-                }
-                newWindow.close();
+        submitListBtn.setOnAction((ActionEvent event) -> {
+            String listName1 = nameBox.getText();
+            if (listToEdit==null) {
+                //If not editing list, make new one
+                TaskList newList = new TaskList(listName1);
+                lystList.add(newList);
+            } else {
+                //Else, change existing list name. Replace old list with new one in listview
+                listToEdit.setListName(listName1);
+                int lystIndex = lystList.indexOf(listToEdit);
+                lystList.set(lystIndex, listToEdit);
             }
+            newWindow.close();
         });
         
         
@@ -379,9 +391,6 @@ public class ToDoList extends Application {
       
       newWindow.show();
   
-    }
-    
-
-    
+    }   
 }
 
